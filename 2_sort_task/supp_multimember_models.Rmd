@@ -1,0 +1,97 @@
+---
+title: "multimembership models, plots"
+author: "Jeroen van Paridon, Ellise Suffill, Gary Lupyan"
+date: "2022-07-14"
+output:
+  html_document:
+    number_sections: false
+    theme: cerulean
+    toc_float: true
+    toc: true
+    code_folding: hide
+---
+
+```{r setup, include=TRUE, cache=FALSE}
+
+library(tidyverse)
+if(!require(devtools)){
+    install.packages("devtools")
+    library("devtools")
+}
+install_github("jvparidon/lmerMultiMember")
+library(lmerMultiMember)  # download/install this from github if needed
+```
+# Study 1
+
+```{r, include=TRUE, cache=FALSE}
+pairwise_df_1 <- read.csv(file="data/CEL_1_pairwise_data.tsv", header=T, sep="\t") %>% mutate(exp="exp1")
+
+pairwise_df_1 <- pairwise_df_1 %>% 
+	mutate(cat_min = pmin(cat_diff_log_ratio_a, cat_diff_log_ratio_b),
+				 cluster_min = pmin(pp_a_n_clusters, pp_b_n_clusters),
+				 cluster_max = pmax(pp_a_n_clusters, pp_b_n_clusters),
+				 cluster_abs_diff = abs(pp_a_n_clusters-pp_b_n_clusters)
+				 )
+```
+
+## Multiple membership mixed effects model for Exp 1
+```{r, include=TRUE, cache=FALSE}
+
+pairwise_df_1 %>%
+  lmer(z_transformed_rank_r ~ relevel(as.factor(cond_numeric),ref='1') + (1|pp), data = .,
+       memberships = list(pp = weights_from_vector(as.character(.$pair), sep=', '))) %>% summary
+
+# if this model runs correctly, the summary output should show min, mean, and max
+# number of group memberships for each observation (i.e. dataframe row) is 2
+```
+
+# Study 2
+
+```{r}
+pairwise_df_2 <- read.csv(file="data/CEL_2_pairwise_data.tsv", header=T, sep="\t") %>% mutate(exp="exp2")
+
+pairwise_df_2 <- pairwise_df_2 %>% 
+	mutate(cat_min = pmin(cat_diff_log_ratio_a, cat_diff_log_ratio_b),
+				 cluster_min = pmin(pp_a_n_clusters, pp_b_n_clusters),
+				 cluster_max = pmax(pp_a_n_clusters, pp_b_n_clusters),
+				 cluster_abs_diff = abs(pp_a_n_clusters-pp_b_n_clusters)
+				 )
+```
+
+
+## multiple membership mixed effects model for Exp 2
+```{r, include=TRUE, cache=FALSE}
+
+pairwise_df_2 %>%
+  lmer(z_transformed_rank_r ~ relevel(as.factor(cond_numeric),ref='1') + (1|pp), data = .,
+       memberships = list(pp = weights_from_vector(as.character(.$pair), sep=', '))) %>% summary
+
+# if this model runs correctly, the summary output should show min, mean, and max
+# number of group memberships for each observation (i.e. dataframe row) is 2
+```
+
+# Exps 1 and 2 combined
+
+Main effect of condition
+
+Alignment significantly higher With Labels compared to No Labels and compared to Baseline
+```{r}
+combined_exps <- bind_rows(pairwise_df_1,pairwise_df_2)
+
+combined_exps %>% 
+  lmer(z_transformed_rank_r ~ exp+relevel(as.factor(cond_numeric),ref='1') + (1|pp), data = .,
+       memberships = list(pp = weights_from_vector(as.character(.$pair), sep=', '))) %>% summary
+
+
+```
+
+## Controlling for categoricality 
+
+Effects gone
+```{r}
+combined_exps %>% 
+  lmer(z_transformed_rank_r ~ cat_min+exp+relevel(as.factor(cond_numeric),ref='1') + (1|pp), data = .,
+       memberships = list(pp = weights_from_vector(as.character(.$pair), sep=', '))) %>% summary
+
+```
+
