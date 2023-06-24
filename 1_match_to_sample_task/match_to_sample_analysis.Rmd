@@ -1,0 +1,140 @@
+---
+title: "Pre-exposure (Match-to-sample)"
+author: "Gary Lupyan & Ellise Suffill"
+date: "6/13/2023"
+output: 
+  html_document:
+    number_sections: false
+    theme: cerulean
+    toc_float: true
+    toc: true
+    code_folding: hide
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Load libraries
+
+```{r, include=FALSE}
+library(dplyr)
+library(lme4)
+library(lmerTest)
+```
+
+## Load in data from in-lab and online studies
+
+Remember that the in-lab match to sample was about 3x as long as online version, hence more observations
+
+```{r, include=FALSE}
+match_to_sample_exp1 <- read.csv(file="s1_match_to_sample.csv",header=T, sep=",")
+match_to_sample_exp2 <- read.csv(file="s2_match_to_sample.csv", header=T, sep=",")
+
+exp2_successful_sorters <- read.csv(file="../2_sort_task/data/CEL_2_indiv_data.tsv", header=T, sep="\t") %>% select(participant)
+
+```
+
+# Study 1
+
+## Acurracy
+
+No significant differences by labeling condition
+
+```{r, warning=FALSE, echo=FALSE}
+match_to_sample_exp1 %>%
+  group_by(subjCode,label_cond) %>%
+  summarize(isRight = mean(isRight)) %>% 
+	group_by(label_cond) %>%
+  summarize(isRight_mean = mean(isRight),
+            isRight_sd = sd(isRight),n=n())
+
+
+
+m1_accu <- glmer(isRight~label_cond + (1|subjCode),
+                data=match_to_sample_exp1,control = glmerControl(optCtrl=list(maxfun=6e4)),
+                family=binomial(link="logit"))
+summary(m1_accu)
+```
+
+## RTs
+
+Trimmed to exclude <150 ms or 2SDs above the mean
+
+```{r, echo=FALSE}
+#include only correct trials
+match_to_sample_exp1 <- match_to_sample_exp1 %>% filter(isRight==1) %>%
+	group_by(label_cond) %>% mutate(subj_mean_RT=mean(RT,na.rm=TRUE),subj_sd_RT = sd(RT)) %>% 
+	mutate(exclude_outlier_RT = RT > subj_sd_RT*2 | RT<150) %>% 
+	mutate(exp="exp1")
+
+
+match_to_sample_exp1 %>% 	filter(exclude_outlier_RT==FALSE) %>% 
+	group_by(subjCode,label_cond) %>% summarize(subj_mean_RT=mean(RT,na.rm=TRUE)) %>%  
+	group_by(label_cond) %>% summarize(cond_RT_mean=mean(subj_mean_RT),cond_RT_SD = sd(subj_mean_RT),n=n())
+
+
+match_to_sample_exp1 %>% 	filter(exclude_outlier_RT==FALSE) %>% 
+	lmer(RT~label_cond+(1|subjCode),data=.) %>% summary
+
+
+
+```
+
+# Study 2
+
+## Remove participants who sorted improperly
+
+Those participants were excluded based on faulty sorts, but still included in these data, so let's exclude them.
+
+```{r}
+
+match_to_sample_exp2 <- match_to_sample_exp2 %>% filter(subjCode %in% exp2_successful_sorters$participant)
+```
+
+
+## Acurracy
+
+No significant differences by labelling condition
+
+```{r, warning=FALSE, echo=FALSE}
+match_to_sample_exp2 %>% 
+  group_by(subjCode,label_cond) %>%
+  summarize(isRight = mean(isRight)) %>% 
+	group_by(label_cond) %>%
+  summarize(isRight_mean = mean(isRight),
+            isRight_sd = sd(isRight),n=n())
+
+
+match_to_sample_exp2 %>%
+	glmer(isRight~1+label_cond + (1|subjCode),
+                data=.,control = glmerControl(optCtrl=list(maxfun=6e4)),
+                family=binomial) %>% summary
+```
+
+## RTs
+
+```{r, echo=FALSE}
+
+#include only correct trials
+match_to_sample_exp2 <- match_to_sample_exp2 %>% filter(isRight==1) %>%
+	group_by(label_cond) %>% mutate(subj_mean_RT=mean(RT,na.rm=TRUE),subj_sd_RT = sd(RT)) %>% 
+	mutate(exclude_outlier_RT = RT > subj_sd_RT*2 | RT<150) %>% 
+	mutate(exp="exp2")
+
+match_to_sample_exp2 %>% 	filter(exclude_outlier_RT==FALSE) %>% 
+	group_by(subjCode,label_cond) %>% summarize(subj_mean_RT=mean(RT,na.rm=TRUE)) %>%  
+	group_by(label_cond) %>% summarize(cond_RT_mean=mean(subj_mean_RT),cond_RT_SD = sd(subj_mean_RT),n=n())
+
+match_to_sample_exp2 %>% 	filter(exclude_outlier_RT==FALSE) %>% 
+	lmer(RT~label_cond+(1|subjCode),data=.) %>% summary
+
+```
+
+# Compare RTs of exp 1 vs exp 2 
+```{r}
+rbind(match_to_sample_exp1,match_to_sample_exp2) %>% 
+	filter(exclude_outlier_RT==FALSE) %>% 
+	lmer(RT~exp+(1|subjCode),data=.) %>% summary
+```
+
