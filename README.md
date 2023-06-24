@@ -1,4 +1,4 @@
-# labels_alignment
+# Do nonsense labels affect alignment and categoricality of sorts
 Repo for data &amp; analysis of how labels affect alignment &amp; categoricality of sorts
 
 Codebook for analysis of match to sample and sorting data
