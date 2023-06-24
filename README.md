@@ -3,13 +3,14 @@ Repo for data &amp; analysis of how labels affect alignment &amp; categoricality
 
 Codebook for analysis of match to sample and sorting data
 
-Task 1: Match to sample
+## Task 1: Match to sample
 
 The match to sample task provided pre-exposure to the category structure for participants in:
 the No Labels condition (who heard white noise instead of category labels);
 and the With Labels condition (who heard non-words ‘gek’ and ‘talp’ as category labels).
 
-Column identifiers:
+### Column identifiers
+
 	⁃	subjCode - ID column for a participant.
 	⁃	label_cond - condition a given participant experienced. -0.5 = “No Labels”; 0.5 = “With Labels”
 	⁃	block - which block of the task the data corresponds to of blocks 1-3.
@@ -26,12 +27,13 @@ Column identifiers:
 
 ################################################################################
 
-Task 2: sorting task
+## Task 2: sorting task
 
 Participants sorted items (from 2 generated categories) on basis of perceived similarity. We analyze these sorts for alignment (similarity of sorts) and categoricality (distance between category A vs. category B items in the sorts).
 
-Column identifiers
-2i) Individual level data (CEL_1/2_indiv_data.tsv):
+### Column identifiers
+### 2i) Individual level data (CEL_1/2_indiv_data.tsv)
+
 	⁃	participant - ID column for participant.
 	⁃	n_clusters - number of clusters formed by participant during the sorting task
 	⁃	Cond_numeric - Numeric factor indicating which condition a participant experienced. -1 = Baseline; 0 = No Labels; 1 = With Labels.
@@ -48,7 +50,8 @@ Column identifiers
 
 ###################################################################################
 
-2ii) Pairwise data (CEL_1/2_pairwise_data.tsv):
+### 2ii) Pairwise data (CEL_1/2_pairwise_data.tsv)
+
 	⁃	cond_numeric - Numeric factor indicating which condition a pair of participants experienced. -1 = Baseline; 0 = No Labels; 1 = With Labels.
 	⁃	Condition - Factor indicating which condition a pair of participants experienced, Baseline, No Labels or With Labels.
 	⁃	Pair - ID column for the pair of participants in this data row
