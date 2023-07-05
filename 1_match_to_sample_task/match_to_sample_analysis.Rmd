@@ -1,6 +1,5 @@
 ---
 title: "Pre-exposure (Match-to-sample)"
-author: "Gary Lupyan & Ellise Suffill"
 date: "6/13/2023"
 output: 
   html_document:

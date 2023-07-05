@@ -9,7 +9,6 @@
 <meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
 
 
-<meta name="author" content="Gary Lupyan &amp; Ellise Suffill" />
 
 
 <title>Pre-exposure (Match-to-sample)</title>
@@ -1303,6 +1302,8 @@ window.initializeCodeFolding = function(show) {
   // select all R code blocks
   var rCodeBlocks = $('pre.r, pre.python, pre.bash, pre.sql, pre.cpp, pre.stan, pre.julia, pre.foldable');
   rCodeBlocks.each(function() {
+    // skip if the block has fold-none class
+    if ($(this).hasClass('fold-none')) return;
 
     // create a collapsable div to wrap the code in
     var div = $('<div class="collapse r-code-collapse"></div>');
@@ -1447,23 +1448,17 @@ overflow-y: auto;
 border: 1px solid #ddd;
 border-radius: 4px;
 }
-.tabset-dropdown > .nav-tabs > li.active:before {
-content: "";
+.tabset-dropdown > .nav-tabs > li.active:before, .tabset-dropdown > .nav-tabs.nav-tabs-open:before {
+content: "\e259";
 font-family: 'Glyphicons Halflings';
 display: inline-block;
 padding: 10px;
 border-right: 1px solid #ddd;
 }
 .tabset-dropdown > .nav-tabs.nav-tabs-open > li.active:before {
-content: "";
-border: none;
-}
-.tabset-dropdown > .nav-tabs.nav-tabs-open:before {
-content: "";
+content: "\e258";
 font-family: 'Glyphicons Halflings';
-display: inline-block;
-padding: 10px;
-border-right: 1px solid #ddd;
+border: none;
 }
 .tabset-dropdown > .nav-tabs > li.active {
 display: block;
@@ -1577,7 +1572,6 @@ border-radius: 0px;
 
 
 <h1 class="title toc-ignore">Pre-exposure (Match-to-sample)</h1>
-<h4 class="author">Gary Lupyan &amp; Ellise Suffill</h4>
 <h4 class="date">6/13/2023</h4>
 
 </div>
@@ -1624,8 +1618,8 @@ online version, hence more observations</p>
 ## 
 ## Fixed effects:
 ##             Estimate Std. Error z value Pr(&gt;|z|)    
-## (Intercept)  4.34251    0.12036  36.079   &lt;2e-16 ***
-## label_cond  -0.05606    0.22879  -0.245    0.806    
+## (Intercept)  4.34250    0.12032  36.092   &lt;2e-16 ***
+## label_cond  -0.05606    0.22872  -0.245    0.806    
 ## ---
 ## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
 ## 
@@ -1711,8 +1705,8 @@ included in these data, so let’s exclude them.</p>
 ## 
 ## Fixed effects:
 ##             Estimate Std. Error z value Pr(&gt;|z|)    
-## (Intercept)  3.48897    0.09231  37.794   &lt;2e-16 ***
-## label_cond  -0.09323    0.17076  -0.546    0.585    
+## (Intercept)  3.48897    0.09231  37.798   &lt;2e-16 ***
+## label_cond  -0.09323    0.17072  -0.546    0.585    
 ## ---
 ## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
 ## 

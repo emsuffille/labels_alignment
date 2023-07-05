@@ -1,6 +1,5 @@
 ---
 title: "multimembership models, plots"
-author: "Jeroen van Paridon, Ellise Suffill, Gary Lupyan"
 date: "2022-07-14"
 output:
   html_document:
