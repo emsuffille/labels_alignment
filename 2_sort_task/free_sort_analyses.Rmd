@@ -1,6 +1,5 @@
 ---
 title: "Effect of labels on categoricality and aligment"
-author: "Gary Lupyan, Ellise Suffill"
 date: "2023-12-19"
 output:
   html_document:
