@@ -1,6 +1,7 @@
 ---
 title: "Effect of labels on categoricality and aligment"
-date: "2023-06-21"
+author: "Gary Lupyan, Ellise Suffill"
+date: "2023-12-19"
 output:
   html_document:
     number_sections: false
@@ -15,6 +16,7 @@ library(Rmisc)
 library(tidyverse)
 library(lme4)
 library(ggplot2)
+library(corrr)
 library(directlabels)
 colors <- c("#000000", "#E69F00", "#56B4E9")
 ```
@@ -236,6 +238,8 @@ Alignment significantly higher in with labels, compared with no labels and basel
 
 pairwise_df_1 <- pairwise_df_1 %>% 
 	mutate(cat_min = pmin(cat_diff_log_ratio_a, cat_diff_log_ratio_b),
+				 cat_max = pmax(cat_diff_log_ratio_a, cat_diff_log_ratio_b),
+				 cat_abs_diff = abs(cat_diff_log_ratio_a-cat_diff_log_ratio_b),
 				 cluster_min = pmin(pp_a_n_clusters, pp_b_n_clusters),
 				 cluster_max = pmax(pp_a_n_clusters, pp_b_n_clusters),
 				 cluster_abs_diff = abs(pp_a_n_clusters-pp_b_n_clusters)
@@ -316,6 +320,13 @@ d_1_all_2cluster %>% group_by(Condition) %>% summarize(alignment = mean(mean_ali
 d_1_all_2cluster %>% lm(mean_alignment~relevel(as.factor(cond_numeric),ref="1"),data=.) %>% summary
 ```
 
+## Correlation between alignment and different measures of pair-wise categoricality 
+```{r}
+d_1_all %>% ungroup %>% 
+	select(mean_alignment,cat_min,cat_max, cat_abs_diff) %>% 
+	correlate
+```
+As can be seen, `mean_alignment` is most correlated 
 
 ## Effect of condition on alignment controlling for minimum categoricality by pair
 
@@ -500,6 +511,7 @@ ggplot(indiv_df_2, aes(x=n_clusters, fill=Condition)) +
 ggsave("plots/CEL_2_n_clusters_histogram.pdf")
 ```
 
+
 ## Effect of condition on alignment (aggregated by participant)
 
 Alignment significantly higher in with labels, compared with no labels and baseline
@@ -507,7 +519,10 @@ Alignment significantly higher in with labels, compared with no labels and basel
 ```{r, warning=FALSE,message = FALSE}
 
 pairwise_df_2 <- pairwise_df_2 %>% 
-	mutate(cat_min = pmin(cat_diff_log_ratio_a, cat_diff_log_ratio_b),
+	mutate(
+				cat_max = pmax(cat_diff_log_ratio_a, cat_diff_log_ratio_b),
+				cat_abs_diff = abs(cat_diff_log_ratio_a-cat_diff_log_ratio_b),
+				cat_min = pmin(cat_diff_log_ratio_a, cat_diff_log_ratio_b),
 				 cluster_min = pmin(pp_a_n_clusters, pp_b_n_clusters),
 				 cluster_max = pmax(pp_a_n_clusters, pp_b_n_clusters),
 				 cluster_abs_diff = abs(pp_a_n_clusters-pp_b_n_clusters)
@@ -532,6 +547,10 @@ d_2_all$mean_alignment_adj <- resid(lm(mean_alignment ~ cat_min, data=d_2_all))
 d_2_all$exp <- "exp2"
 
 ```
+
+
+
+
 
 ## Alignment analyses
 ```{r}
@@ -565,6 +584,14 @@ ggplot(d_2_all, aes(y=mean_alignment, x=Condition, color=Condition, fill=Conditi
   theme(panel.border = element_blank(), axis.line = element_line())
   
 ggsave("plots/CEL_2_alignment_violin.pdf")
+```
+
+
+## Correlation between alignment and different measures of pair-wise categoricality 
+```{r}
+d_2_all %>% ungroup %>% 
+	select(mean_alignment,cat_min,cat_max, cat_abs_diff) %>% 
+	correlate
 ```
 
 
