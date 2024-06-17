@@ -1,5 +1,6 @@
 ---
-title: "Effect of labels on categoricality and aligment"
+title: "Effect of labels on categoricality and alignment"
+author: "Gary Lupyan, Ellise Suffill"
 date: "2023-12-19"
 output:
   html_document:
@@ -32,6 +33,24 @@ indiv_df_1 <- read.csv(file="data/CEL_1_indiv_data.tsv", header=T, sep="\t") %>%
 		exp = "exp1")
 		
 pairwise_df_1 <- read.csv(file="data/CEL_1_pairwise_data.tsv", header=T, sep="\t")
+
+#get alignment between pairs of participants for within category comparisons
+pairwise_df_1_within <- read.csv(file="data/CEL_1_pairwise_within.tsv", header=T, sep="\t") %>% 
+	select(participant_a, participant_b, z_transformed_rank_r) %>% 
+	rename(mean_alignment_within = z_transformed_rank_r)
+
+#get alignment between pairs of participants for between category comparisons
+pairwise_df_1_between <- read.csv(file="data/CEL_1_pairwise_cross.tsv", header=T, sep="\t") %>% 
+	select(participant_a, participant_b, z_transformed_rank_r) %>% 
+	rename(mean_alignment_between = z_transformed_rank_r)
+
+pairwise_df_1 <- left_join(pairwise_df_1,pairwise_df_1_within,
+													 by=c("participant_a"="participant_a", "participant_b"="participant_b")) 
+
+pairwise_df_1 <- left_join(pairwise_df_1,pairwise_df_1_between,
+													 by=c("participant_a"="participant_a", "participant_b"="participant_b")) 
+
+
 ```
 
 ## Effect of condition on categoricality as log(between/within)
@@ -50,92 +69,6 @@ no_labels_vs_all <- lm(formula=log_cat_ratio ~ relevel(as.factor(cond_numeric), 
 baseline_vs_all <- lm(formula=log_cat_ratio ~ relevel(as.factor(cond_numeric), ref='-1'), data=indiv_df_1)
 summary(no_labels_vs_all)
 summary(baseline_vs_all)
-```
-
-
-### Categoricality figure - line
-```{r, warning=FALSE, echo=TRUE,message = FALSE}
-categoricality_agg <- indiv_df_1 %>%
-	mutate(
-		between_category = ab_dist,
-		within_category = (a_dist+b_dist)/2) %>% 
-	pivot_longer(cols=c(between_category,within_category),names_to="Category_comp",values_to = "dist") %>% 
-	summarySEwithin(measurevar = "dist", withinvars = "Category_comp", betweenvars="Condition")
-
-
-
-ggplot(data=filter(categoricality_agg), aes(x=Category_comp, y=dist, group=Condition, color=Condition)) +
-  ylim(300, 600)+
-	theme_bw() +
-  scale_fill_manual(values=colors) +
-  scale_color_manual(values=colors) +
-  theme(panel.border = element_blank(), axis.line = element_line())+
-  theme(text=element_text(size=20))+
-	scale_x_discrete(labels=c("Between Category","Within Category"))+
-  xlab("\nCategory comparison") + ylab("Average Euclidean distance\n")+
-  theme(legend.position = "none")
-
-ggsave("plots/CEL_1_categoricality_line_placeholder.pdf",width=1000,height=700,units='px',dpi=144)
-
-
-ggplot(data=filter(categoricality_agg,Condition=="Baseline"), aes(x=Category_comp, y=dist, group=Condition, color=Condition)) +
-  geom_line(aes(linetype=Condition,group=Condition), size=1,position=position_dodge(width=.05)) +
-  geom_point(size=2,position=position_dodge(width=.05)) +
-  geom_errorbar(mapping=aes(x=Category_comp, ymin=dist-se, ymax=dist+se), size=1, width=.05,position=position_dodge(width=.05)) +
-  geom_dl(aes(label=Condition), method=list("last.qp", cex=1.2),
-          position=position_nudge(x=.1)) +
-  ylim(300, 600)+
-	theme_bw() +
-  scale_fill_manual(values=colors) +
-  scale_color_manual(values=colors) +
-  theme(panel.border = element_blank(), axis.line = element_line())+
-  theme(text=element_text(size=20))+
-	scale_x_discrete(labels=c("Between Category","Within Category"))+
-  xlab("\nCategory comparison") + ylab("Average Euclidean distance\n")+
-  theme(legend.position = "none")
-
-ggsave("plots/CEL_1_categoricality_line_baseline_only.pdf",width=1000,height=700,units='px',dpi=144)	
-
-
-
-ggplot(data=filter(categoricality_agg,Condition!="With Labels"), aes(x=Category_comp, y=dist, group=Condition, color=Condition)) +
-  geom_line(aes(linetype=Condition,group=Condition), size=1,position=position_dodge(width=.05)) +
-  geom_point(size=2,position=position_dodge(width=.05)) +
-  geom_errorbar(mapping=aes(x=Category_comp, ymin=dist-se, ymax=dist+se), size=1, width=.05,position=position_dodge(width=.05)) +
-  geom_dl(aes(label=Condition), method=list("last.qp", cex=1.2),
-          position=position_nudge(x=.1)) +
-  ylim(300, 600)+
-	theme_bw() +
-  scale_fill_manual(values=colors) +
-  scale_color_manual(values=colors) +
-  theme(panel.border = element_blank(), axis.line = element_line())+
-  theme(text=element_text(size=20))+
-	scale_x_discrete(labels=c("Between Category","Within Category"))+
-  xlab("\nCategory comparison") + ylab("Average Euclidean distance\n")+
-  theme(legend.position = "none")
-
-ggsave("plots/CEL_1_categoricality_line_no_labels.pdf",width=1000,height=700,units='px',dpi=144)	
-
-
-ggplot(data=categoricality_agg, aes(x=Category_comp, y=dist, group=Condition, color=Condition)) +
-  geom_line(aes(linetype=Condition,group=Condition), size=1,position=position_dodge(width=.05)) +
-  geom_point(size=2,position=position_dodge(width=.05)) +
-  geom_errorbar(mapping=aes(x=Category_comp, ymin=dist-se, ymax=dist+se), size=1, width=.05,position=position_dodge(width=.05)) +
-  geom_dl(aes(label=Condition), method=list("last.qp", cex=1.2),
-          position=position_nudge(x=.1)) +
-  ylim(300, 600)+
-	theme_bw() +
-  scale_fill_manual(values=colors) +
-  scale_color_manual(values=colors) +
-  theme(panel.border = element_blank(), axis.line = element_line())+
-  theme(text=element_text(size=20))+
-	scale_x_discrete(labels=c("Between Category","Within Category"))+
-  xlab("\nCategory comparison") + ylab("Average Euclidean distance\n")+
-  theme(legend.position = "none")
-
-ggsave("plots/CEL_1_categoricality_line_all.pdf",width=1000,height=700,units='px',dpi=144)	
-	
-
 ```
 
 
@@ -171,9 +104,6 @@ Label participants produce sorts with significantly fewer clusters
 ```{r}
 indiv_df_1 %>% group_by(Condition) %>% summarize(num_clusters =round(mean(n_clusters),1))
 ```
-
-
-
 Poisson model (shown by likelihood ratio test to be nearly identical to the negative binomial model)
 
 ```{r}
@@ -226,9 +156,6 @@ ggplot(indiv_df_1, aes(x=n_clusters, fill=Condition)) +
 ggsave("plots/CEL_1_n_clusters_histogram.pdf")
 ```
 
-
-
-
 ## Effect of condition on alignment (aggregated by a and b participants in each pair)
 
 Alignment significantly higher in with labels, compared with no labels and baseline
@@ -256,6 +183,10 @@ d_1_all <- rbind(d_1a,d_1b) %>%
   group_by(cond_numeric,Condition,participant) %>%
   summarize_if(is.numeric,mean,na.rm=TRUE) %>% 
 	rename(mean_alignment = z_transformed_rank_r)
+
+#merge in individual categoricality
+d_1_all <- d_1_all %>% left_join(select(indiv_df_1,participant,log_cat_ratio))
+
 
 #residualize categoricality from alignment for later analysis
 d_1_all$mean_alignment_adj <- resid(lm(mean_alignment ~ cat_min, data=d_1_all))
@@ -293,39 +224,63 @@ ggplot(d_1_all, aes(y=mean_alignment, x=Condition, color=Condition, fill=Conditi
   
 ggsave("plots/CEL_1_alignment_violin.pdf")
 ```
-
-## Alignment for participants who produced 2 clusters only
+For supplementary materials (Fig 3S)
 
 ```{r}
-participants_2_clusters_exp1 <- indiv_df_1 %>% filter(n_clusters==2) %>% select(participant)
+means <- d_1_all %>%
+  group_by(Condition) %>%
+  summarise(Alignment = mean(mean_alignment_within))
 
-d_1a_2cluster <- pairwise_df_1 %>% filter(participant_a %in% participants_2_clusters_exp1$participant & 
-																 	participant_b %in% participants_2_clusters_exp1$participant) %>% 
-  group_by(cond_numeric,Condition,participant_a) %>%
-  summarize_if(is.numeric,mean,na.rm=TRUE) %>%
-  rename(participant = participant_a)
-d_1b_2cluster <- pairwise_df_1 %>% filter(participant_a %in% participants_2_clusters_exp1$participant & 
-																 	participant_b %in% participants_2_clusters_exp1$participant) %>% 
-  group_by(cond_numeric,Condition,participant_b) %>%
-  summarize_if(is.numeric,mean,na.rm=TRUE) %>%
-  rename(participant = participant_b)
-d_1_all_2cluster <- rbind(d_1a_2cluster,d_1b_2cluster) %>%
-  group_by(cond_numeric,Condition,participant) %>%
-  summarize_if(is.numeric,mean,na.rm=TRUE) %>% 
-	rename(mean_alignment = z_transformed_rank_r)
+ggplot(d_1_all, aes(y=mean_alignment_within, x=Condition, color=Condition, fill=Condition)) +
+  geom_violin(alpha=.5) +
+  geom_hline(data=means, aes(yintercept=Alignment, col=Condition), alpha=.5, size=1) +
+  geom_boxplot(width=0.1, alpha=.5) +
+  theme_bw() +
+  scale_fill_manual(values=colors) +
+  scale_color_manual(values=colors) +
+  ylab("Within Category Alignment") +
+  xlab("Condition") +
+  theme(text=element_text(size=20)) +
+	coord_cartesian(ylim=c(-.05,.7))+
+	theme(legend.position="blank") +
+  theme(panel.grid.major.x = element_blank(), panel.grid.minor.x = element_blank()) +
+  theme(panel.border = element_blank(), axis.line = element_line())
+  
+ggsave("plots/CEL_1_alignment_within_violin.pdf")
+```
+For supplementary materials (Fig 3S)
 
-d_1_all_2cluster %>% group_by(Condition) %>% summarize(alignment = mean(mean_alignment), sd=(sd(mean_alignment)),n=n())
+```{r}
+means <- d_1_all %>%
+  group_by(Condition) %>%
+  summarise(Alignment = mean(mean_alignment_between))
 
-d_1_all_2cluster %>% lm(mean_alignment~relevel(as.factor(cond_numeric),ref="1"),data=.) %>% summary
+ggplot(d_1_all, aes(y=mean_alignment_between, x=Condition, color=Condition, fill=Condition)) +
+  geom_violin(alpha=.5) +
+  geom_hline(data=means, aes(yintercept=Alignment, col=Condition), alpha=.5, size=1) +
+  geom_boxplot(width=0.1, alpha=.5) +
+  theme_bw() +
+  scale_fill_manual(values=colors) +
+  scale_color_manual(values=colors) +
+  ylab("Between Category Alignment") +
+  xlab("Condition") +
+  theme(text=element_text(size=20)) +
+	coord_cartesian(ylim=c(-.05,.7))+
+	theme(legend.position="blank") +
+  theme(panel.grid.major.x = element_blank(), panel.grid.minor.x = element_blank()) +
+  theme(panel.border = element_blank(), axis.line = element_line())
+  
+ggsave("plots/CEL_1_alignment_between_violin.pdf")
 ```
 
 ## Correlation between alignment and different measures of pair-wise categoricality 
+
+Mean alignment most strongly correlated with minimum pairwise categoricality (cat_min)
 ```{r}
 d_1_all %>% ungroup %>% 
 	select(mean_alignment,cat_min,cat_max, cat_abs_diff) %>% 
 	correlate
 ```
-As can be seen, `mean_alignment` is most correlated 
 
 ## Effect of condition on alignment controlling for minimum categoricality by pair
 
@@ -337,7 +292,6 @@ d_1_all %>%  with(cor(mean_alignment,cat_min))
 
 d_1_all %>%  lm(mean_alignment~cat_min+relevel(as.factor(cond_numeric), ref='1'), data=.) %>% summary
 ```
-
 
 ## Effect of condition on alignment controlling for cluster nums
 
@@ -354,8 +308,6 @@ d_1_all %>%  lm(mean_alignment~cluster_max+cat_min+relevel(as.factor(cond_numeri
 d_1_all %>%  lm(mean_alignment~cluster_abs_diff+cat_min+relevel(as.factor(cond_numeric), ref='1'), data=.) %>% summary
 
 ```
-
-
 
 ### Figure of Exp1 alignment as a function of categoricality
 
@@ -376,27 +328,6 @@ ggplot(d_1_all, aes(y=mean_alignment, x=cat_min, color=Condition, fill=Condition
 ggsave("plots/CEL_1_alignment_controlled_by_categoricality_scatter.pdf")
 ```
 
-
-### Figure of alignment when controlling for categoricality
-
-```{r, warning=FALSE, echo=TRUE,message = FALSE}
-ggplot(d_1_all, aes(y=mean_alignment_adj, x=Condition, color=Condition, fill=Condition)) +
-  geom_violin(alpha=.5) +
-  geom_hline(data=means, aes(yintercept=Alignment, col=Condition), alpha=.5, size=1) +
-  geom_boxplot(width=0.1, alpha=.5) +
-  theme_bw() +
-  scale_fill_manual(values=colors) +
-  scale_color_manual(values=colors) +
-  ylab("Alignment after\ncontrolling for categoricality") +
-  theme(text=element_text(size=20)) +
-  theme(legend.position="top") +
-  theme(panel.grid.major.x = element_blank(), panel.grid.minor.x = element_blank()) +
-  theme(panel.border = element_blank(), axis.line = element_line())
-
-ggsave("plots/CEL_1_alignment_controlled_by_categoricality_violin_mean.pdf")
-```
-
-
 # Study 2
 
 ```{r, warning=FALSE,message = FALSE}
@@ -408,6 +339,22 @@ indiv_df_2 <- read.csv(file="data/CEL_2_indiv_data.tsv", header=T, sep="\t") %>%
 		exp="exp2")
 
 pairwise_df_2 <- read.csv(file="data/CEL_2_pairwise_data.tsv", header=T, sep="\t")
+
+#get alignment between pairs of participants for within category comparisons
+pairwise_df_2_within <- read.csv(file="data/CEL_2_pairwise_within.tsv", header=T, sep="\t") %>% 
+	select(participant_a, participant_b, z_transformed_rank_r) %>% 
+	rename(mean_alignment_within = z_transformed_rank_r)
+
+#get alignment between pairs of participants for within category comparisons
+pairwise_df_2_between <- read.csv(file="data/CEL_2_pairwise_cross.tsv", header=T, sep="\t") %>% 
+	select(participant_a, participant_b, z_transformed_rank_r) %>% 
+	rename(mean_alignment_between = z_transformed_rank_r)
+
+pairwise_df_2 <- left_join(pairwise_df_2,pairwise_df_2_within,
+													 by=c("participant_a"="participant_a", "participant_b"="participant_b")) 
+
+pairwise_df_2 <- left_join(pairwise_df_2,pairwise_df_2_between,
+													 by=c("participant_a"="participant_a", "participant_b"="participant_b")) 
 
 ```
 
@@ -458,10 +405,7 @@ Number of clusters per condition
 indiv_df_2 %>%
   group_by(Condition) %>%
   summarise(Clusters = mean(n_clusters))
-
 ```
-
-
 
 ## Label participants produce a similar number of clusters on average to the other 2 conditions
 
@@ -482,7 +426,6 @@ indiv_df_2 %>% group_by(Condition) %>%
 
 indiv_df_2 %>% glm(I(n_clusters==2) ~ relevel(as.factor(cond_numeric), ref='1'), data=.,family=binomial) %>% summary
 ```
-
 
 ### Plot Number of clusters
 
@@ -541,15 +484,14 @@ d_2_all <- rbind(d_2a,d_2b) %>%
   summarize_if(is.numeric,mean,na.rm=TRUE) %>% 
 	rename(mean_alignment = z_transformed_rank_r)
 
+#merge in individual categoricality
+d_2_all <- d_2_all %>% left_join(select(indiv_df_2,participant,log_cat_ratio))
+
+
 #residualize categoricality from alignment for later analysis
 d_2_all$mean_alignment_adj <- resid(lm(mean_alignment ~ cat_min, data=d_2_all))
 d_2_all$exp <- "exp2"
-
 ```
-
-
-
-
 
 ## Alignment analyses
 ```{r}
@@ -584,9 +526,59 @@ ggplot(d_2_all, aes(y=mean_alignment, x=Condition, color=Condition, fill=Conditi
   
 ggsave("plots/CEL_2_alignment_violin.pdf")
 ```
+For supplementary materials (Fig 3S)
 
+```{r, warning=FALSE,message = FALSE, echo=TRUE}
+
+means <- d_2_all %>%
+  group_by(Condition) %>%
+  summarise(Alignment = mean(mean_alignment_within),Alignment_sd=sd(mean_alignment_within))
+
+ggplot(d_2_all, aes(y=mean_alignment_within, x=Condition, color=Condition, fill=Condition)) +
+  geom_violin(alpha=.5) +
+  geom_hline(data=means, aes(yintercept=Alignment, col=Condition), alpha=.5, size=1) +
+  geom_boxplot(width=0.1, alpha=.5) +
+  theme_bw() +
+  scale_fill_manual(values=colors) +
+  scale_color_manual(values=colors) +
+  ylab("Within Category Alignment") +
+  theme(text=element_text(size=20)) +
+  theme(legend.position="blank") +
+	coord_cartesian(ylim=c(-.05,.7))+
+  theme(panel.grid.major.x = element_blank(), panel.grid.minor.x = element_blank()) +
+  theme(panel.border = element_blank(), axis.line = element_line())
+  
+ggsave("plots/CEL_2_alignment_within_violin.pdf")
+```
+For supplementary materials (Fig 3S)
+
+```{r, warning=FALSE,message = FALSE, echo=TRUE}
+
+means <- d_2_all %>%
+  group_by(Condition) %>%
+  summarise(Alignment = mean(mean_alignment_between),Alignment_sd=sd(mean_alignment_between))
+
+
+ggplot(d_2_all, aes(y=mean_alignment_between, x=Condition, color=Condition, fill=Condition)) +
+  geom_violin(alpha=.5) +
+  geom_hline(data=means, aes(yintercept=Alignment, col=Condition), alpha=.5, size=1) +
+  geom_boxplot(width=0.1, alpha=.5) +
+  theme_bw() +
+  scale_fill_manual(values=colors) +
+  scale_color_manual(values=colors) +
+  ylab("Between Category Alignment") +
+  theme(text=element_text(size=20)) +
+  theme(legend.position="blank") +
+	coord_cartesian(ylim=c(-.05,.7))+
+  theme(panel.grid.major.x = element_blank(), panel.grid.minor.x = element_blank()) +
+  theme(panel.border = element_blank(), axis.line = element_line())
+  
+ggsave("plots/CEL_2_alignment_between_violin.pdf")
+```
 
 ## Correlation between alignment and different measures of pair-wise categoricality 
+
+Again, minimum pairwise categoricality is most correlated with alignment
 ```{r}
 d_2_all %>% ungroup %>% 
 	select(mean_alignment,cat_min,cat_max, cat_abs_diff) %>% 
@@ -622,41 +614,6 @@ ggplot(d_2_all, aes(y=mean_alignment, x=cat_min, color=Condition, fill=Condition
 
 ggsave("plots/CEL_2_alignment_controlled_by_categoricality_scatter.pdf")
 ```
-### Plot of residualized alignment
-
-```{r, warning=FALSE, echo=TRUE,message = FALSE}
-
-means <- d_2_all %>% group_by(Condition) %>% summarize(Alignment=mean(mean_alignment_adj))
-
-ggplot(d_2_all, aes(y=mean_alignment_adj, x=Condition, color=Condition, fill=Condition)) +
-  geom_violin(alpha=.5) +
-  geom_hline(data=means, aes(yintercept=Alignment, col=Condition), alpha=.5, size=1) +
-  geom_boxplot(width=0.1, alpha=.5) +
-  theme_bw() +
-  scale_fill_manual(values=colors) +
-  scale_color_manual(values=colors) +
-  ylab("Alignment after\ncontrolling for categoricality") +
-  theme(text=element_text(size=20)) +
-  theme(legend.position="top") +
-  theme(panel.grid.major.x = element_blank(), panel.grid.minor.x = element_blank()) +
-  theme(panel.border = element_blank(), axis.line = element_line())
-
-ggsave("plots/CEL_2_alignment_controlled_by_categoricality_violin.pdf")
-```
-
-
-
-## Effect of condition on alignment controlling for minimum categoricality by pair
-
-After controlling for minimum categoricality by pair, no differences in alignment across conditions
-```{r, warning=FALSE,message = FALSE}
-
-d_2_all %>%  lm(mean_alignment~cat_min, data=.) %>% summary
-d_2_all %>%  with(cor(mean_alignment,cat_min))
-
-d_2_all %>%  lm(mean_alignment~cat_min+relevel(as.factor(cond_numeric), ref='1'), data=.) %>% summary
-```
-
 
 ## Effect of condition on alignment controlling for cluster nums
 
@@ -673,31 +630,3 @@ d_2_all %>%  lm(mean_alignment~cat_min+cluster_max+relevel(as.factor(cond_numeri
 d_2_all %>%  lm(mean_alignment~cat_min+cluster_abs_diff+relevel(as.factor(cond_numeric), ref='1'), data=.) %>% summary
 
 ```
-
-
-# Comparisons of Exps 1 and 2
-
-## Comparison of categoricality between exps 1 and 2
-
-```{r}
-bind_rows(indiv_df_1,indiv_df_2) %>% lm(log_cat_ratio~exp,data=.) %>% summary
-bind_rows(indiv_df_1,indiv_df_2) %>% filter(Condition=="No Labels") %>% lm(log_cat_ratio~exp,data=.) %>% summary
-
-```
-
-## Comparison of likelihood of binary sorts 
-
-```{r}
-bind_rows(indiv_df_1,indiv_df_2) %>% glm(I(n_clusters==2)~exp,data=.,family=binomial) %>% summary
-```
-
-## Comparison of alignment between exps 1 and 2
-
-```{r}
-bind_rows(d_1_all,d_2_all) %>% lm(mean_alignment~exp,data=.) %>% summary
-bind_rows(d_1_all,d_2_all) %>% group_by(Condition,exp) %>% 
-	summarize(mean_alignment=mean(mean_alignment)) %>%
-	pivot_wider(names_from=exp,values_from = mean_alignment) %>% 
-	mutate(exp2_alignment_advantage = exp2-exp1)
-```
-
