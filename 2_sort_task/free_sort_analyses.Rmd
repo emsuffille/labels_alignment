@@ -33,24 +33,6 @@ indiv_df_1 <- read.csv(file="data/CEL_1_indiv_data.tsv", header=T, sep="\t") %>%
 		exp = "exp1")
 		
 pairwise_df_1 <- read.csv(file="data/CEL_1_pairwise_data.tsv", header=T, sep="\t")
-
-#get alignment between pairs of participants for within category comparisons
-pairwise_df_1_within <- read.csv(file="data/CEL_1_pairwise_within.tsv", header=T, sep="\t") %>% 
-	select(participant_a, participant_b, z_transformed_rank_r) %>% 
-	rename(mean_alignment_within = z_transformed_rank_r)
-
-#get alignment between pairs of participants for between category comparisons
-pairwise_df_1_between <- read.csv(file="data/CEL_1_pairwise_cross.tsv", header=T, sep="\t") %>% 
-	select(participant_a, participant_b, z_transformed_rank_r) %>% 
-	rename(mean_alignment_between = z_transformed_rank_r)
-
-pairwise_df_1 <- left_join(pairwise_df_1,pairwise_df_1_within,
-													 by=c("participant_a"="participant_a", "participant_b"="participant_b")) 
-
-pairwise_df_1 <- left_join(pairwise_df_1,pairwise_df_1_between,
-													 by=c("participant_a"="participant_a", "participant_b"="participant_b")) 
-
-
 ```
 
 ## Effect of condition on categoricality as log(between/within)
@@ -339,23 +321,6 @@ indiv_df_2 <- read.csv(file="data/CEL_2_indiv_data.tsv", header=T, sep="\t") %>%
 		exp="exp2")
 
 pairwise_df_2 <- read.csv(file="data/CEL_2_pairwise_data.tsv", header=T, sep="\t")
-
-#get alignment between pairs of participants for within category comparisons
-pairwise_df_2_within <- read.csv(file="data/CEL_2_pairwise_within.tsv", header=T, sep="\t") %>% 
-	select(participant_a, participant_b, z_transformed_rank_r) %>% 
-	rename(mean_alignment_within = z_transformed_rank_r)
-
-#get alignment between pairs of participants for within category comparisons
-pairwise_df_2_between <- read.csv(file="data/CEL_2_pairwise_cross.tsv", header=T, sep="\t") %>% 
-	select(participant_a, participant_b, z_transformed_rank_r) %>% 
-	rename(mean_alignment_between = z_transformed_rank_r)
-
-pairwise_df_2 <- left_join(pairwise_df_2,pairwise_df_2_within,
-													 by=c("participant_a"="participant_a", "participant_b"="participant_b")) 
-
-pairwise_df_2 <- left_join(pairwise_df_2,pairwise_df_2_between,
-													 by=c("participant_a"="participant_a", "participant_b"="participant_b")) 
-
 ```
 
 ## Effect of condition on categoricality measured as log(between/within)

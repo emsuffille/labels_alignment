@@ -14,11 +14,12 @@ output:
 ```{r setup, include=TRUE, cache=FALSE}
 
 library(tidyverse)
-# if(!require(devtools)){
-#     install.packages("devtools")
-#     library("devtools")
-# }
-# install_github("jvparidon/lmerMultiMember")
+library(lme4)
+if(!require(devtools)){
+    install.packages("devtools")
+    library("devtools")
+}
+install_github("jvparidon/lmerMultiMember")
 library(lmerMultiMember)  # download/install this from github if you don't have it already
 color <- c("#B2182B", "#2166AC", "#808080")
 colors <- c("#B2182B", "#2166AC", "#808080", "#B2182B", "#2166AC", "#808080")
@@ -27,6 +28,7 @@ colors <- c("#B2182B", "#2166AC", "#808080", "#B2182B", "#2166AC", "#808080")
 
 ```{r, include=TRUE, cache=FALSE}
 pairwise_df_1 <- read.csv(file="data/CEL_1_pairwise_data.tsv", header=T, sep="\t") %>% mutate(exp="exp1")
+pairwise_df_1 <- within(pairwise_df_1, pair <- paste(participant_a, participant_b,sep='-'))
 ```
 
 ## Multiple membership mixed effects model for Exp 1
@@ -44,6 +46,7 @@ pairwise_df_1 %>%
 
 ```{r}
 pairwise_df_2 <- read.csv(file="data/CEL_2_pairwise_data.tsv", header=T, sep="\t") %>% mutate(exp="exp2")
+pairwise_df_2 <- within(pairwise_df_2, pair <- paste(participant_a, participant_b,sep='-'))
 ```
 
 
